@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ElectroCell Quest</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-container {
+            background: #ffffff;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .login-container h1 {
+            font-size: 2em;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+
+        .login-container p {
+            color: #718096;
+            font-size: 1em;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #4a5568, #2d3748);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .rules-container {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+
+        .rules-container h2 {
+            font-size: 1.5em;
+            color: #4a5568;
+            margin-bottom: 15px;
+        }
+
+        .rules-container ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .rules-container li {
+            font-size: 1em;
+            color: #2d3748;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .rules-container li strong {
+            color: #4a5568;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Selamat Datang di ElectroCell Quest</h1>
+        <p>Pelajari dan eksplorasi dunia elektrolisis melalui berbagai mode permainan.</p>
+        
+        <div class="rules-container">
+            <h2>📜 Aturan Main</h2>
+            <ul>
+                <li><strong>🔬 Mode Eksperimen:</strong> Pilih larutan elektrolit, elektroda, tegangan, dan waktu untuk melakukan eksperimen elektrolisis. Amati hasil reaksi dan produk yang terbentuk.</li>
+                <li><strong>⏱️ Mode Time Challenge:</strong> Jawab sebanyak mungkin soal elektrolisis dalam waktu 60 detik. Kecepatan dan ketepatan adalah kunci!</li>
+                <li><strong>🏭 Mode Simulasi Industri:</strong> Simulasikan proses elektrolisis industri seperti pelapisan logam, produksi gas, dan ekstraksi logam. Atur parameter untuk mencapai efisiensi maksimal.</li>
+            </ul>
+        </div>
+
+        <button class="btn" onclick="window.location.href='main.html'">Masuk</button>
+    </div>
+</body>
+</html>
