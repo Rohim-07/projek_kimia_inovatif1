@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroCell Quest</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+       
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            overflow-x: hidden;
+        }
+       
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+       
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+       
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+       
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+       
+        .stat-item {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 5px;
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+        }
+       
+        .game-modes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+       
+        .mode-card {
+            background: rgba(255,255,255,0.15);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+       
+        .mode-card:hover {
+            transform: translateY(-5px);
+            border-color: #fff;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+       
+        .mode-card.active {
+            border-color: #4CAF50;
+            background: rgba(76,175,80,0.2);
+        }
+       
+        .mode-title {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #FFD700;
+        }
+       
+        .game-area {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+       
+        .experiment-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+       
+        .control-group {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+        }
+       
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+       
+        .control-group select, .control-group input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+        }
+       
+        .simulation-area {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 300px;
+            position: relative;
+        }
+       
+        .electrode {
+            position: absolute;
+            width: 20px;
+            height: 200px;
+            background: linear-gradient(to bottom, #C0C0C0, #808080);
+            border-radius: 10px;
+        }
+       
+        .electrode.anode {
+            left: 50px;
+            background: linear-gradient(to bottom, #FF6B6B, #FF8E8E);
+        }
+       
+        .electrode.cathode {
+            right: 50px;
+            background: linear-gradient(to bottom, #4ECDC4, #45B7B8);
+        }
+       
+        .electrolyte {
+            position: absolute;
+            left: 80px;
+            right: 80px;
+            top: 50px;
+            bottom: 50px;
+            background: rgba(100,149,237,0.6);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+       
+        .ion {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: float 3s ease-in-out infinite;
+        }
+       
+        .ion.positive {
+            background: #FF6B6B;
+            box-shadow: 0 0 10px #FF6B6B;
+        }
+       
+        .ion.negative {
+            background: #4ECDC4;
+            box-shadow: 0 0 10px #4ECDC4;
+        }
+       
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(10px, -10px); }
+        }
+       
+        .results-panel {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+       
+        .quiz-area {
+            display: none;
+            text-align: center;
+        }
+       
+        .question {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+       
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+       
+        .option {
+            padding: 15px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+       
+        .option:hover {
+            border-color: #FFD700;
+            background: rgba(255,215,0,0.2);
+        }
+       
+        .option.correct {
+            border-color: #4CAF50;
+            background: rgba(76,175,80,0.3);
+        }
+       
+        .option.wrong {
+            border-color: #F44336;
+            background: rgba(244,67,54,0.3);
+        }
+       
+        .timer {
+            font-size: 2em;
+            color: #FFD700;
+            margin-bottom: 20px;
+        }
+       
+        .btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+       
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+       
+        .btn.secondary {
+            background: linear-gradient(45deg, #FF9800, #F57C00);
+        }
+       
+        .btn.danger {
+            background: linear-gradient(45deg, #F44336, #D32F2F);
+        }
+       
+        .leaderboard {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+       
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+       
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+       
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            transition: width 0.5s ease;
+        }
+       
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(76,175,80,0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+       
+        .notification.show {
+            transform: translateX(0);
+        }
+       
+        .hidden {
+            display: none;
+        }
+       
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+           
+            .header h1 {
+                font-size: 2em;
+            }
+           
+            .stats {
+                flex-direction: column;
+            }
+           
+            .experiment-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ ElectroCell Quest ⚡</h1>
+            <p>Selamatkan dunia dengan teknologi elektrolisis!</p>
+        </div>
+       
+        <div class="stats">
+            <div class="stat-item">
+                <h3>Poin Total</h3>
+                <div id="totalPoints">0</div>
+            </div>
+            <div class="stat-item">
+                <h3>Level</h3>
+                <div id="playerLevel">1</div>
+            </div>
+            <div class="stat-item">
+                <h3>Energi</h3>
+                <div id="playerEnergy">100</div>
+            </div>
+            <div class="stat-item">
+                <h3>Eksperimen</h3>
+                <div id="experimentsCompleted">0</div>
+            </div>
+        </div>
+       
+        <div class="game-modes">
+            <div class="mode-card active" onclick="switchMode('experiment')">
+                <div class="mode-title">🔬 Mode Eksperimen</div>
+                <p>Lakukan elektrolisis dengan berbagai elektrolit dan elektroda</p>
+            </div>
+            <div class="mode-card" onclick="switchMode('challenge')">
+                <div class="mode-title">⏱️ Time Challenge</div>
+                <p>Jawab soal elektrolisis dalam waktu terbatas</p>
+            </div>
+            <div class="mode-card" onclick="switchMode('industry')">
+                <div class="mode-title">🏭 Simulasi Industri</div>
+                <p>Simulasi proses elektrolisis di industri</p>
+            </div>
+        </div>
+       
+        <div class="game-area">
+            <!-- Mode Eksperimen -->
+            <div id="experimentMode" class="game-mode">
+                <h2>🔬 Mode Eksperimen</h2>
+                <div class="experiment-controls">
+                    <div class="control-group">
+                        <label for="electrolyte">Pilih Elektrolit:</label>
+                        <select id="electrolyte">
+                            <option value="CuSO4">CuSO₄ (Tembaga Sulfat)</option>
+                            <option value="NaCl">NaCl (Natrium Klorida)</option>
+                            <option value="H2SO4">H₂SO₄ (Asam Sulfat)</option>
+                            <option value="KI">KI (Kalium Iodida)</option>
+                            <option value="AgNO3">AgNO₃ (Perak Nitrat)</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="electrode">Pilih Elektroda:</label>
+                        <select id="electrode">
+                            <option value="graphite">Grafit</option>
+                            <option value="copper">Tembaga</option>
+                            <option value="platinum">Platinum</option>
+                            <option value="silver">Perak</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="voltage">Tegangan (V):</label>
+                        <input type="range" id="voltage" min="1" max="12" value="6">
+                        <span id="voltageValue">6V</span>
+                    </div>
+                    <div class="control-group">
+                        <label for="time">Waktu (detik):</label>
+                        <input type="range" id="time" min="10" max="300" value="60">
+                        <span id="timeValue">60s</span>
+                    </div>
+                </div>
+               
+                <div class="simulation-area" id="simulationArea">
+                    <div class="electrode anode" title="Anoda (+)">
+                        <div style="position: absolute; top: -30px; left: -10px; font-size: 12px; color: #FFD700;">ANODA (+)</div>
+                    </div>
+                    <div class="electrode cathode" title="Katoda (-)">
+                        <div style="position: absolute; top: -30px; left: -15px; font-size: 12px; color: #FFD700;">KATODA (-)</div>
+                    </div>
+                    <div class="electrolyte" id="electrolyteContainer">
+                        <!-- Ions will be added here dynamically -->
+                    </div>
+                </div>
+               
+                <div style="text-align: center; margin: 20px 0;">
+                    <button class="btn" onclick="startExperiment()">🚀 Mulai Elektrolisis</button>
+                    <button class="btn secondary" onclick="stopExperiment()">⏹️ Stop</button>
+                    <button class="btn secondary" onclick="resetExperiment()">🔄 Reset</button>
+                </div>
+               
+                <div class="results-panel" id="resultsPanel">
+                    <h3>📊 Hasil Eksperimen</h3>
+                    <div id="experimentResults">
+                        <p>Klik "Mulai Elektrolisis" untuk memulai eksperimen</p>
+                    </div>
+                </div>
+            </div>
+           
+            <!-- Mode Puzzle -->
+            <div id="puzzleMode" class="game-mode hidden">
+                <h2>🧩 Mode Reaksi Tepat</h2>
+                <div id="puzzleContent">
+                    <div class="question">
+                        <p>Tentukan ion-ion dan reaksi yang terjadi pada elektrolisis <span id="puzzleCompound">CuSO₄</span></p>
+                    </div>
+                    <div class="puzzle-inputs">
+                        <div class="control-group">
+                            <label>Ion Positif (Kation):</label>
+                            <input type="text" id="cationInput" placeholder="Contoh: Cu²⁺">
+                        </div>
+                        <div class="control-group">
+                            <label>Ion Negatif (Anion):</label>
+                            <input type="text" id="anionInput" placeholder="Contoh: SO₄²⁻">
+                        </div>
+                        <div class="control-group">
+                            <label>Reaksi di Katoda:</label>
+                            <input type="text" id="cathodeReactionInput" placeholder="Contoh: Cu²⁺ + 2e⁻ → Cu">
+                        </div>
+                        <div class="control-group">
+                            <label>Reaksi di Anoda:</label>
+                            <input type="text" id="anodeReactionInput" placeholder="Contoh: 2H₂O → O₂ + 4H⁺ + 4e⁻">
+                        </div>
+                    </div>
+                    <button class="btn" onclick="checkPuzzleAnswer()">✅ Periksa Jawaban</button>
+                    <button class="btn secondary" onclick="nextPuzzle()">➡️ Soal Berikutnya</button>
+                </div>
+                <div id="puzzleResult" class="results-panel hidden"></div>
+            </div>
+           
+            <!-- Mode Time Challenge -->
+            <div id="challengeMode" class="game-mode hidden">
+                <h2>⏱️ Time Challenge</h2>
+                <div class="quiz-area" id="quizArea">
+                    <div class="timer" id="timer">60</div>
+                    <div class="question" id="quizQuestion">
+                        <p>Pada elektrolisis larutan CuSO₄ dengan elektroda grafit, produk yang terbentuk di katoda adalah...</p>
+                    </div>
+                    <div class="options" id="quizOptions">
+                        <div class="option" onclick="selectOption(this, 'correct')">Logam tembaga (Cu)</div>
+                        <div class="option" onclick="selectOption(this, 'wrong')">Gas oksigen (O₂)</div>
+                        <div class="option" onclick="selectOption(this, 'wrong')">Gas hidrogen (H₂)</div>
+                        <div class="option" onclick="selectOption(this, 'wrong')">Ion sulfat (SO₄²⁻)</div>
+                    </div>
+                    <div id="quizScore">Skor: <span id="currentScore">0</span></div>
+                </div>
+                <div style="text-align: center; margin: 20px 0;">
+                    <button class="btn" onclick="startTimeChallenge()">🚀 Mulai Challenge</button>
+                    <button class="btn danger" onclick="stopTimeChallenge()">⏹️ Stop</button>
+                </div>
+            </div>
+           
+            <!-- Mode Industri -->
+            <div id="industryMode" class="game-mode hidden">
+                <h2>🏭 Simulasi Industri</h2>
+                <div class="experiment-controls">
+                    <div class="control-group">
+                        <label for="industryProcess">Pilih Proses:</label>
+                        <select id="industryProcess">
+                            <option value="electroplating">Pelapisan Logam (Electroplating)</option>
+                            <option value="hydrogen">Produksi Gas Hidrogen</option>
+                            <option value="aluminum">Ekstraksi Aluminium</option>
+                            <option value="chlorine">Produksi Klorin</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="current">Arus Listrik (A):</label>
+                        <input type="range" id="current" min="1" max="100" value="10">
+                        <span id="currentValue">10A</span>
+                    </div>
+                    <div class="control-group">
+                        <label for="efficiency">Target Efisiensi (%):</label>
+                        <input type="range" id="efficiency" min="50" max="100" value="85">
+                        <span id="efficiencyValue">85%</span>
+                    </div>
+                </div>
+               
+                <div class="results-panel">
+                    <h3>📈 Hasil Simulasi Industri</h3>
+                    <div id="industryResults">
+                        <p>Pilih proses dan atur parameter untuk memulai simulasi</p>
+                    </div>
+                </div>
+               
+                <button class="btn" onclick="startIndustrySimulation()">🏭 Jalankan Simulasi</button>
+            </div>
+        </div>
+       
+        <div class="leaderboard">
+            <h3>🏆 Leaderboard</h3>
+            <div class="leaderboard-item">
+                <span>1. Kamu</span>
+                <span id="playerScore">0 pts</span>
+            </div>
+        </div>
+       
+        <div class="progress-bar">
+            <div class="progress-fill" id="overallProgress" style="width: 0%"></div>
+        </div>
+        <p style="text-align: center; margin-top: 10px;">Progress Pembelajaran: <span id="progressText">0%</span></p>
+    </div>
+   
+    <div class="notification" id="notification">
+        <span id="notificationText">Selamat! Anda mendapat 10 poin!</span>
+    </div>
+   
+    <script>
+        // Game State
+        let gameState = {
+            points: 0,
+            level: 1,
+            energy: 100,
+            experimentsCompleted: 0,
+            currentMode: 'experiment',
+            isExperimentRunning: false,
+            challengeTimer: null,
+            challengeTimeLeft: 60,
+            challengeScore: 0,
+            puzzleLevel: 1
+        };
+       
+        // Electrolyte data
+        const electrolyteData = {
+            'CuSO4': {
+                cation: 'Cu²⁺',
+                anion: 'SO₄²⁻',
+                cathodeReaction: 'Cu²⁺ + 2e⁻ → Cu',
+                anodeReaction: '2H₂O → O₂ + 4H⁺ + 4e⁻',
+                color: '#4169E1'
+            },
+            'NaCl': {
+                cation: 'Na⁺',
+                anion: 'Cl⁻',
+                cathodeReaction: '2H₂O + 2e⁻ → H₂ + 2OH⁻',
+                anodeReaction: '2Cl⁻ → Cl₂ + 2e⁻',
+                color: '#32CD32'
+            },
+            'H2SO4': {
+                cation: 'H⁺',
+                anion: 'SO₄²⁻',
+                cathodeReaction: '2H⁺ + 2e⁻ → H₂',
+                anodeReaction: '2H₂O → O₂ + 4H⁺ + 4e⁻',
+                color: '#FFD700'
+            },
+            'KI': {
+                cation: 'K⁺',
+                anion: 'I⁻',
+                cathodeReaction: '2H₂O + 2e⁻ → H₂ + 2OH⁻',
+                anodeReaction: '2I⁻ → I₂ + 2e⁻',
+                color: '#8A2BE2'
+            },
+            'AgNO3': {
+                cation: 'Ag⁺',
+                anion: 'NO₃⁻',
+                cathodeReaction: 'Ag⁺ + e⁻ → Ag',
+                anodeReaction: '2H₂O → O₂ + 4H⁺ + 4e⁻',
+                color: '#C0C0C0'
+            }
+        };
+       
+        // Quiz questions
+        const quizQuestions = [
+            {
+                question: "Pada elektrolisis larutan CuSO₄ dengan elektroda grafit, produk yang terbentuk di katoda adalah...",
+                options: ["Logam tembaga (Cu)", "Gas oksigen (O₂)", "Gas hidrogen (H₂)", "Ion sulfat (SO₄²⁻)"],
+                correct: 0
+            },
+            {
+                question: "Hukum Faraday menyatakan bahwa massa zat yang diendapkan sebanding dengan...",
+                options: ["Tegangan listrik", "Muatan listrik yang mengalir", "Waktu elektrolisis", "Konsentrasi larutan"],
+                correct: 1
+            },
+            {
+                question: "Dalam elektrolisis, reaksi reduksi terjadi di...",
+                options: ["Anoda", "Katoda", "Elektrolit", "Sumber listrik"],
+                correct: 1
+            },
+            {
+                question: "Elektrolisis air menghasilkan gas hidrogen di katoda dan gas oksigen di anoda dengan perbandingan volume...",
+                options: ["1:1", "2:1", "1:2", "3:1"],
+                correct: 1
+            },
+            {
+                question: "Dalam proses electroplating, logam yang akan dilapisi berfungsi sebagai...",
+                options: ["Anoda", "Katoda", "Elektrolit", "Sumber listrik"],
+                correct: 1
+            }
+        ];
+       
+        let currentQuestionIndex = 0;
+       
+        // Initialize game
+        function initGame() {
+            updateUI();
+            setupEventListeners();
+            showNotification("Selamat datang di ElectroCell Quest! 🚀");
+        }
+       
+        function updateUI() {
+            document.getElementById('totalPoints').textContent = gameState.points;
+            document.getElementById('playerLevel').textContent = gameState.level;
+            document.getElementById('playerEnergy').textContent = gameState.energy;
+            document.getElementById('experimentsCompleted').textContent = gameState.experimentsCompleted;
+            document.getElementById('playerScore').textContent = gameState.points + ' pts';
+           
+            // Update progress bar
+            const progress = Math.min((gameState.experimentsCompleted / 10) * 100, 100);
+            document.getElementById('overallProgress').style.width = progress + '%';
+            document.getElementById('progressText').textContent = Math.round(progress) + '%';
+        }
+       
+        function setupEventListeners() {
+            // Voltage slider
+            document.getElementById('voltage').addEventListener('input', function() {
+                document.getElementById('voltageValue').textContent = this.value + 'V';
+            });
+           
+            // Time slider
+            document.getElementById('time').addEventListener('input', function() {
+                document.getElementById('timeValue').textContent = this.value + 's';
+            });
+           
+            // Current slider
+            document.getElementById('current').addEventListener('input', function() {
+                document.getElementById('currentValue').textContent = this.value + 'A';
+            });
+           
+            // Efficiency slider
+            document.getElementById('efficiency').addEventListener('input', function() {
+                document.getElementById('efficiencyValue').textContent = this.value + '%';
+            });
+        }
+       
+        function switchMode(mode) {
+            // Hide all modes
+            document.querySelectorAll('.game-mode').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.mode-card').forEach(el => el.classList.remove('active'));
+           
+            // Show selected mode
+            document.getElementById(mode + 'Mode').classList.remove('hidden');
+            event.target.closest('.mode-card').classList.add('active');
+           
+            gameState.currentMode = mode;
+        }
+       
+        function startExperiment() {
+            if (gameState.energy < 10) {
+                showNotification("Energi tidak cukup! Selesaikan tantangan untuk mendapatkan energi.", "error");
+                return;
+            }
+           
+            const electrolyte = document.getElementById('electrolyte').value;
+            const electrode = document.getElementById('electrode').value;
+            const voltage = document.getElementById('voltage').value;
+            const time = document.getElementById('time').value;
+           
+            gameState.isExperimentRunning = true;
+            gameState.energy -= 10;
+           
+            // Change electrolyte color
+            const electrolyteContainer = document.getElementById('electrolyteContainer');
+            electrolyteContainer.style.background = `rgba(${hexToRgb(electrolyteData[electrolyte].color)}, 0.6)`;
+           
+            // Add animated ions
+            addIons(electrolyte);
+           
+            // Show results after experiment time
+            setTimeout(() => {
+                showExperimentResults(electrolyte, electrode, voltage, time);
+                gameState.isExperimentRunning = false;
+            }, parseInt(time) * 100); // Scaled down for demo
+           
+            updateUI();
+            showNotification("Eksperimen dimulai! ⚡");
+        }
+       
+        function addIons(electrolyte) {
+            const container = document.getElementById('electrolyteContainer');
+            container.innerHTML = ''; // Clear existing ions
+           
+            // Add positive ions (move to cathode)
+            for (let i = 0; i < 15; i++) {
+                const ion = document.createElement('div');
+                ion.className = 'ion positive';
+                ion.style.left = Math.random() * 80 + '%';
+                ion.style.top = Math.random() * 80 + '%';
+                ion.style.animationDelay = Math.random() * 3 + 's';
+                container.appendChild(ion);
+            }
+           
+            // Add negative ions (move to anode)
+            for (let i = 0; i < 15; i++) {
+                const ion = document.createElement('div');
+                ion.className = 'ion negative';
+                ion.style.left = Math.random() * 80 + '%';
+                ion.style.top = Math.random() * 80 + '%';
+                ion.style.animationDelay = Math.random() * 3 + 's';
+                container.appendChild(ion);
+            }
+        }
+
+
+        function showExperimentResults(electrolyte, electrode, voltage, time) {
+            const data = electrolyteData[electrolyte];
+            const resultsDiv = document.getElementById('experimentResults');
+            resultsDiv.innerHTML = `
+                <p><strong>Elektrolit:</strong> ${electrolyte}</p>
+                <p><strong>Elektroda:</strong> ${electrode}</p>
+                <p><strong>Tegangan:</strong> ${voltage} V</p>
+                <p><strong>Waktu:</strong> ${time} detik</p>
+                <p><strong>Kation:</strong> ${data.cation}</p>
+                <p><strong>Anion:</strong> ${data.anion}</p>
+                <p><strong>Reaksi di Katoda:</strong> ${data.cathodeReaction}</p>
+                <p><strong>Reaksi di Anoda:</strong> ${data.anodeReaction}</p>
+            `;
+            gameState.points += 10;
+            gameState.experimentsCompleted += 1;
+            if (gameState.experimentsCompleted % 5 === 0) {
+                gameState.level += 1;
+                showNotification("Level up! 🎉");
+            } else {
+                showNotification("Eksperimen selesai! +10 poin");
+            }
+            updateUI();
+        }
+
+
+        function stopExperiment() {
+            gameState.isExperimentRunning = false;
+            showNotification("Eksperimen dihentikan.", "info");
+        }
+
+
+        function resetExperiment() {
+            document.getElementById('electrolyteContainer').innerHTML = '';
+            document.getElementById('experimentResults').innerHTML = '<p>Klik "Mulai Elektrolisis" untuk memulai eksperimen</p>';
+            showNotification("Eksperimen direset.", "info");
+        }
+
+
+        function showNotification(message, type = "success") {
+            const notif = document.getElementById('notification');
+            const notifText = document.getElementById('notificationText');
+            notifText.textContent = message;
+            notif.style.background = type === "error" ? "rgba(244,67,54,0.9)" :
+                                    type === "info" ? "rgba(33,150,243,0.9)" :
+                                    "rgba(76,175,80,0.9)";
+            notif.classList.add('show');
+            setTimeout(() => notif.classList.remove('show'), 2500);
+        }
+
+
+        function hexToRgb(hex) {
+            // Remove # if present
+            hex = hex.replace(/^#/, '');
+            if (hex.length === 3) {
+                hex = hex.split('').map(x => x + x).join('');
+            }
+            const num = parseInt(hex, 16);
+            return [(num >> 16) & 255, (num >> 8) & 255, num & 255].join(',');
+        }
+
+
+        // Puzzle Mode
+        function checkPuzzleAnswer() {
+            const compound = document.getElementById('puzzleCompound').textContent;
+            const data = electrolyteData[compound];
+            const cation = document.getElementById('cationInput').value.trim();
+            const anion = document.getElementById('anionInput').value.trim();
+            const cathode = document.getElementById('cathodeReactionInput').value.trim();
+            const anode = document.getElementById('anodeReactionInput').value.trim();
+            let score = 0;
+            if (cation === data.cation) score++;
+            if (anion === data.anion) score++;
+            if (cathode === data.cathodeReaction) score++;
+            if (anode === data.anodeReaction) score++;
+            const resultDiv = document.getElementById('puzzleResult');
+            resultDiv.classList.remove('hidden');
+            if (score === 4) {
+                resultDiv.innerHTML = "<p>Jawaban benar semua! 🎉 +20 poin</p>";
+                gameState.points += 20;
+            } else {
+                resultDiv.innerHTML = `<p>Benar ${score}/4. Coba lagi atau lanjut ke soal berikutnya.</p>`;
+            }
+            updateUI();
+        }
+
+
+        function nextPuzzle() {
+            // Cycle through available compounds
+            const compounds = Object.keys(electrolyteData);
+            gameState.puzzleLevel = (gameState.puzzleLevel % compounds.length) + 1;
+            const nextCompound = compounds[gameState.puzzleLevel - 1];
+            document.getElementById('puzzleCompound').textContent = nextCompound;
+            document.getElementById('cationInput').value = '';
+            document.getElementById('anionInput').value = '';
+            document.getElementById('cathodeReactionInput').value = '';
+            document.getElementById('anodeReactionInput').value = '';
+            document.getElementById('puzzleResult').classList.add('hidden');
+        }
+
+
+        // Time Challenge Mode
+        function startTimeChallenge() {
+            gameState.challengeTimeLeft = 60;
+            gameState.challengeScore = 0;
+            currentQuestionIndex = 0;
+            document.getElementById('quizArea').style.display = 'block';
+            showQuizQuestion();
+            updateQuizScore();
+            runChallengeTimer();
+        }
+
+
+        function runChallengeTimer() {
+            document.getElementById('timer').textContent = gameState.challengeTimeLeft;
+            if (gameState.challengeTimeLeft > 0) {
+                gameState.challengeTimer = setTimeout(() => {
+                    gameState.challengeTimeLeft--;
+                    runChallengeTimer();
+                }, 1000);
+            } else {
+                stopTimeChallenge();
+                showNotification("Waktu habis! Skor: " + gameState.challengeScore, "info");
+            }
+        }
+
+
+        function stopTimeChallenge() {
+            clearTimeout(gameState.challengeTimer);
+            document.getElementById('quizArea').style.display = 'none';
+            gameState.points += gameState.challengeScore;
+            updateUI();
+        }
+
+
+        function showQuizQuestion() {
+            const q = quizQuestions[currentQuestionIndex];
+            document.getElementById('quizQuestion').innerHTML = `<p>${q.question}</p>`;
+            const optionsDiv = document.getElementById('quizOptions');
+            optionsDiv.innerHTML = '';
+            q.options.forEach((opt, idx) => {
+                const div = document.createElement('div');
+                div.className = 'option';
+                div.textContent = opt;
+                div.onclick = () => selectOption(div, idx === q.correct ? 'correct' : 'wrong');
+                optionsDiv.appendChild(div);
+            });
+        }
+
+
+        function selectOption(element, status) {
+            if (status === 'correct') {
+                element.classList.add('correct');
+                gameState.challengeScore += 10;
+                showNotification("Benar! +10 poin");
+            } else {
+                element.classList.add('wrong');
+                showNotification("Salah!", "error");
+            }
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < quizQuestions.length && gameState.challengeTimeLeft > 0) {
+                    showQuizQuestion();
+                } else {
+                    stopTimeChallenge();
+                }
+                updateQuizScore();
+            }, 800);
+        }
+
+
+        function updateQuizScore() {
+            document.getElementById('currentScore').textContent = gameState.challengeScore;
+        }
+
+
+        // Industry Mode
+        function startIndustrySimulation() {
+            const process = document.getElementById('industryProcess').value;
+            const current = document.getElementById('current').value;
+            const efficiency = document.getElementById('efficiency').value;
+            let resultText = '';
+            switch (process) {
+                case 'electroplating':
+                    resultText = `Proses pelapisan logam dengan arus ${current}A dan efisiensi ${efficiency}%. Logam berhasil dilapisi!`;
+                    break;
+                case 'hydrogen':
+                    resultText = `Produksi gas hidrogen: ${Math.round(current * efficiency / 10)} liter/jam.`;
+                    break;
+                case 'aluminum':
+                    resultText = `Ekstraksi aluminium: ${Math.round(current * efficiency / 20)} kg/jam.`;
+                    break;
+                case 'chlorine':
+                    resultText = `Produksi gas klorin: ${Math.round(current * efficiency / 15)} liter/jam.`;
+                    break;
+            }
+            document.getElementById('industryResults').innerHTML = `<p>${resultText}</p>`;
+            gameState.points += 15;
+            updateUI();
+            showNotification("Simulasi industri selesai! +15 poin");
+        }
+
+
+        // Mode switching on load
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
+
